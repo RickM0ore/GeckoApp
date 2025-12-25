@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "module": "commonjs",
+        "checkJs": true,
+        "types": ["firefox-webext-browser"]
+    },
+    "include": ["**/*.js"]
+}

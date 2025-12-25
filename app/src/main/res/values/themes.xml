@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+  <style name="Theme.GeckoApp" parent="android:Theme.Material.Light.NoActionBar"/>
+
+  <style name="Theme.GeckoApp.Starting" parent="Theme.SplashScreen">
+    <item name="windowSplashScreenBackground">#7e7144</item>
+    <item name="windowSplashScreenAnimationDuration">1000</item>
+    <item name="postSplashScreenTheme">@style/Theme.GeckoApp</item>
+  </style>
+</resources>

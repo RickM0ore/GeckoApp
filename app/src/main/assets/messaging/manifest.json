@@ -1,0 +1,35 @@
+{
+    "name": "GeckoBridge",
+    "description": "Bridge between JS and Native",
+    "version": "1.0",
+    "manifest_version": 2,
+    "permissions": [
+        "nativeMessaging",
+        "nativeMessagingFromContent",
+        "geckoViewAddons",
+        "<all_urls>"
+    ],
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "me@rickmoo.re"
+        }
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "type.d.js",
+                "content_script.js"
+            ],
+            "run_at": "document_start"
+        }
+    ],
+    "background": {
+        "scripts": [
+            "type.d.js",
+            "background.js"
+        ]
+    }
+}
