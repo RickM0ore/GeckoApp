@@ -12,26 +12,22 @@ plugins {
 
 fun getGitHeadHash(): String {
     return try {
-        val stdout = ByteArrayOutputStream()
         providers.exec {
             commandLine("git", "rev-parse", "--short", "HEAD")
-            standardOutput = stdout
-        }
-        stdout.toString().trim()
+        }.standardOutput.asText.get().trim()
     } catch (e: Exception) {
+        e.printStackTrace()
         "nohash"
     }
 }
 
 fun getGitCommitCount(): String {
     return try {
-        val stdout = ByteArrayOutputStream()
         providers.exec {
             commandLine("git", "rev-list", "--count", "HEAD")
-            standardOutput = stdout
-        }
-        stdout.toString().trim()
+        }.standardOutput.asText.get().trim()
     } catch (e: Exception) {
+        e.printStackTrace()
         "1"
     }
 }

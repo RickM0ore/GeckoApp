@@ -59,9 +59,7 @@ class WebViewActivity : ComponentActivity(), ActivityBridge {
     private lateinit var multiplePermissionCallback: ((Map<String, Boolean>) -> Unit)
     private val multiplePermissionRegister =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-            multiplePermissionCallback(
-                it
-            )
+            multiplePermissionCallback(it)
         }
 
     // 单个权限申请
