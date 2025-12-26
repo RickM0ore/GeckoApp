@@ -21,7 +21,7 @@ android {
         minSdk = 28
         targetSdk = 36
         versionCode = rootProject.ext["versionCode"].toString().toInt()
-        versionName = "v1.0.0.r$versionCode.${rootProject.ext["versionName"].toString()}"
+        versionName = "${rootProject.ext["versionName"].toString()}.r$versionCode.${rootProject.ext["hash"].toString()}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

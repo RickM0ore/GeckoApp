@@ -32,7 +32,20 @@ fun getGitCommitCount(): String {
     }
 }
 
+fun getLatestGitTag(): String {
+    return try {
+        providers.exec {
+            // --abbrev=0 表示只返回 tag 名称，不带 commit hash 后缀
+            commandLine("git", "describe", "--tags", "--abbrev=0")
+        }.standardOutput.asText.get().trim()
+    } catch (e: Exception) {
+        // 如果仓库没有 tag 或者 git 命令失败，返回默认值
+        "0.0.0" // 或者 "no-tag"
+    }
+}
+
 ext {
     set("versionCode", getGitCommitCount())
-    set("versionName", getGitHeadHash())
+    set("versionName", getLatestGitTag())
+    set("hash", getGitHeadHash())
 }
