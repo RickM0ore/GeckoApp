@@ -170,6 +170,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation("androidx.lifecycle:lifecycle-service:2.10.0")
     implementation("androidx.lifecycle:lifecycle-process:2.10.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -180,9 +181,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
 
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
+    // https://mvnrepository.com/artifact/androidx.datastore/datastore-preferences
+    implementation("androidx.datastore:datastore-preferences:1.2.0")
 
     implementation(libs.kotlin.reflect)
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind

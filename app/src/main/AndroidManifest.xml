@@ -10,6 +10,7 @@
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
   <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
 
   <application
     android:allowBackup="true"
@@ -24,6 +25,7 @@
     <activity
       android:name=".activity.WebViewActivity"
       android:exported="true"
+      android:launchMode="singleTask"
       android:windowSoftInputMode="adjustResize"
       android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|keyboard"
       android:theme="@style/Theme.GeckoApp.Starting">
@@ -33,6 +35,22 @@
         <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
     </activity>
+    <activity
+      android:name=".activity.HiddenConfigActivity"
+      android:exported="true">
+      <intent-filter>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <action android:name="android.intent.action.APPLICATION_PREFERENCES"/>
+      </intent-filter>
+    </activity>
+    <receiver
+      android:name=".service.broadcast.SecretCodeReceiver"
+      android:exported="true" android:priority="999">
+      <intent-filter>
+        <action android:name="android.provider.Telephony.SECRET_CODE"/>
+        <data android:scheme="android_secret_code" android:host="873283"/>
+      </intent-filter>
+    </receiver>
     <service android:name=".service.update.AppUpdateService"/>
     <provider android:name="androidx.startup.InitializationProvider"
               android:authorities="re.rickmoo.gecko.androidx-startup"
@@ -51,7 +69,7 @@
       android:grantUriPermissions="true">
       <meta-data
         android:name="android.support.FILE_PROVIDER_PATHS"
-        android:resource="@xml/file_paths" />
+        android:resource="@xml/file_paths"/>
     </provider>
   </application>
 </manifest>

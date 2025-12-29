@@ -352,7 +352,6 @@ private fun ContentArea(
                 }
 
                 is LoadState.Success -> {
-                    // TODO: 这里如果需要渲染 Markdown，请使用第三方库，例如 `MarkdownText(markdown = loadState.content)`
                     MarkdownText(
                         modifier = Modifier.padding(top = 4.dp),
                         markdown = loadState.content,

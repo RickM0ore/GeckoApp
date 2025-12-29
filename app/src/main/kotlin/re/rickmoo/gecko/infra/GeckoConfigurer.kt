@@ -202,6 +202,34 @@ class GeckoConfigurer(
         }
     }
 
+    fun addNavigationDelegate(
+        onHrefChange: ((String) -> Unit)? = null,
+        onCanBack: ((Boolean) -> Unit)? = null,
+        onCanForward: ((Boolean) -> Unit)? = null,
+    ) {
+        session.navigationDelegate = object : GeckoSession.NavigationDelegate {
+            override fun onLocationChange(
+                session: GeckoSession,
+                url: String?,
+                perms: List<PermissionDelegate.ContentPermission?>,
+                hasUserGesture: Boolean
+            ) {
+                if (url.isNullOrEmpty()) return
+                if (url.startsWith("about:")) return
+                onHrefChange?.invoke(url)
+            }
+
+            override fun onCanGoBack(session: GeckoSession, canGoBack: Boolean) {
+                onCanBack?.invoke(canGoBack)
+            }
+
+            override fun onCanGoForward(session: GeckoSession, canGoForward: Boolean) {
+                onCanForward?.invoke(canGoForward)
+            }
+        }
+
+    }
+
     fun addProgressDelegate(onComplete: (success: Boolean) -> Unit) {
         session.progressDelegate = object : GeckoSession.ProgressDelegate {
             override fun onPageStop(session: GeckoSession, success: Boolean) {

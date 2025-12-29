@@ -8,23 +8,31 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoView
 import re.rickmoo.gecko.component.ActivityConfiguration
 import re.rickmoo.gecko.component.GeckoBridge
+import re.rickmoo.gecko.datasource.Preferences
 import re.rickmoo.gecko.infra.ActivityBridge
 import re.rickmoo.gecko.infra.GeckoConfigurer
 import re.rickmoo.gecko.infra.GetContentWithMimeTypes
 import re.rickmoo.gecko.infra.GetMultipleContentWithMimeTypes
+import re.rickmoo.gecko.misc.AppStatus
 import re.rickmoo.gecko.service.update.AppUpdateService
 
 class WebViewActivity : ComponentActivity(), ActivityBridge {
     @Volatile
     private var prepared = false
     private val session = GeckoSession()
+    private val preferences by lazy { Preferences(this) }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putString("RESTORE_URL", runBlocking { preferences[Preferences.GeckoView.RESTORE_URL] })
+        outState.putString("ENV_ID", runBlocking { preferences[Preferences.GeckoView.ENV_ID] })
+        super.onSaveInstanceState(outState)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,6 +47,9 @@ class WebViewActivity : ComponentActivity(), ActivityBridge {
             multipleContentCallback = this::multipleContentCallback
             activityResultCallback = this::activityResultCallback
             addPromptDelegate()
+            addNavigationDelegate({
+                lifecycleScope.launch { preferences[Preferences.GeckoView.RESTORE_URL] = it }
+            })
             addExtensionDependency(GeckoBridge())
             addExtensionDependency(ActivityConfiguration(this@WebViewActivity))
             registerWebExtension()
@@ -46,11 +57,28 @@ class WebViewActivity : ComponentActivity(), ActivityBridge {
                 prepared = true
             }
         }
-        configurer.load("https://www.bilibili.com")
         setContent {
             re.rickmoo.gecko.compose.GeckoView(geckoView, lifecycle)
         }
-        startUpdateService()
+        val defaultUrl = runBlocking { preferences[Preferences.GeckoView.DEFAULT_URL] }
+        val restoreUrl = runBlocking { preferences[Preferences.GeckoView.RESTORE_URL] }
+        val envId = runBlocking { preferences[Preferences.GeckoView.ENV_ID] }
+        if (savedInstanceState != null && envId != null) {
+            savedInstanceState.getString("ENV_ID")?.let {
+                if (envId == it) {
+                    configurer.load((restoreUrl ?: defaultUrl) ?: "about:blank")
+                    return@onCreate
+                }
+            }
+        }
+        configurer.load(defaultUrl ?: "about:blank")
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (AppStatus.isAppForeground()) {
+            startUpdateService()
+        }
     }
 
     fun startUpdateService() {
