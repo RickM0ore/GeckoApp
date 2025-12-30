@@ -1,4 +1,9 @@
 /**
+ *
+ *
+ * exportFunction @type {(func: Function, targetScope: Object, options?: {defineAs?: string, allowCallbacks?: boolean}) => void}
+ * cloneInto @type {<T>(obj: T, targetScope: Object, options?: {cloneFunctions?: boolean}) => T}
+ *
  * @param message {NativeMessage}
  * @return {Promise<any>}
  * */
@@ -9,7 +14,6 @@ function callNative(message) {
             // 【重要】结果数据也必须克隆到网页作用域
             // 如果 response 是对象，不 cloneInto 依然会报错或无法读取
             try {
-                // cloneFunctions: true 允许对象里带函数(如果有的话)
                 resolve(cloneInto(response, window, {cloneFunctions: true}));
             } catch (e) {
                 // 如果是简单类型(string/int)，直接返回即可

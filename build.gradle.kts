@@ -35,7 +35,7 @@ ext {
 }
 
 
-val changelogDir: File = project.rootProject.file(outputsDir)
+val changelogDir: File = project.rootProject.file("app/$outputsDir")
 
 tasks.register("generateChangelog") {
     group = "documentation"

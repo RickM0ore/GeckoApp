@@ -1,13 +1,3 @@
-/**
- * @type {(func: Function, targetScope: Object, options?: {defineAs?: string, allowCallbacks?: boolean}) => void}
- */
-// @ts-ignore (这一行是为了防止 TS 检查器报错说 window 上没有这个属性)
-exportFunction
-/**
- * @type {<T>(obj: T, targetScope: Object, options?: {cloneFunctions?: boolean}) => T}
- */
-// @ts-ignore
-cloneInto
 
 class NativeMessage {
     constructor(type, extensionName, action, data) {

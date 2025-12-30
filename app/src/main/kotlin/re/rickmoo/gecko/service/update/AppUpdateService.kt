@@ -72,7 +72,7 @@ class AppUpdateService : LifecycleService() {
                         handleUpdateEvent(
                             UpdateInfoBusCarrier(
                                 "$base/$downloadFileName",
-                                config.changeLog?.let { "$base/$it" },
+                                config.changeLog?.let { "$base/${config.version}/$it" },
                                 config
                             )
                         )
