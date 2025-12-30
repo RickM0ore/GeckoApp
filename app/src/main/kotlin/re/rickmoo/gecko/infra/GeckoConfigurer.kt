@@ -3,14 +3,17 @@ package re.rickmoo.gecko.infra
 import android.Manifest
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.core.content.ContextCompat
 import androidx.startup.AppInitializer
 import org.json.JSONObject
 import org.mozilla.gecko.util.ThreadUtils.runOnUiThread
+import org.mozilla.geckoview.AllowOrDeny
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoSession.PermissionDelegate
@@ -196,12 +199,6 @@ class GeckoConfigurer(
         }
     }
 
-    fun addContentDelegate() {
-        session.contentDelegate = object : GeckoSession.ContentDelegate {
-
-        }
-    }
-
     fun addNavigationDelegate(
         onHrefChange: ((String) -> Unit)? = null,
         onCanBack: ((Boolean) -> Unit)? = null,
@@ -225,6 +222,34 @@ class GeckoConfigurer(
 
             override fun onCanGoForward(session: GeckoSession, canGoForward: Boolean) {
                 onCanForward?.invoke(canGoForward)
+            }
+
+            override fun onLoadRequest(
+                session: GeckoSession,
+                request: GeckoSession.NavigationDelegate.LoadRequest
+            ): GeckoResult<AllowOrDeny> {
+
+                val url = request.uri
+
+                if (url.startsWith("http://") || url.startsWith("https://") ||
+                    url.startsWith("file://") || url.startsWith("about:")
+                ) {
+                    return GeckoResult.fromValue(AllowOrDeny.ALLOW)
+                }
+
+                return try {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+                    context.startActivity(intent)
+                    GeckoResult.fromValue(AllowOrDeny.DENY)
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+
+                    Toast.makeText(context, "未安装相关应用", Toast.LENGTH_SHORT).show()
+                    GeckoResult.fromValue(AllowOrDeny.DENY)
+                }
             }
         }
 

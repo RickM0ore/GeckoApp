@@ -24,34 +24,25 @@ const listener = function (message, sender, sendResponse) {
 browser.runtime.onMessage.addListener(listener);
 
 function enablePreRequestCache() {
-    browser.webRequest.onBeforeRequest.addListener(
+    browser.webRequest.onHeadersReceived.addListener(
         function (details) {
-            // 过滤掉已经是 content:// 的请求，防止死循环
-            if (details.url.startsWith("content://") || details.url.startsWith("blob:")) {
-                return {};
-            }
+            const cleanHeaders = details.responseHeaders.filter(header => {
+                const name = header.name.toLowerCase();
+                return !['pragma',].includes(name) || !(name === 'cache-control' && header.value.toLowerCase() === 'no-store') ||
+                    !('expires' === name && header.value.toLowerCase() === '0');
+            });
 
-            // 将原始 URL 编码，拼接到 content provider 路径后
-            const safeUrl = encodeURIComponent(details.url);
-            const contentUri = `content://re.rickmoo.gecko.infra.GlideContentProvider?url=${safeUrl}`;
-
-            console.log("Redirecting " + details.url + " to " + contentUri);
-
-            return fetch(contentUri)
-                .then(response => response.blob())
-                .then(blob => {
-                    // 4. 创建一个临时的 Blob URL
-                    const blobUrl = URL.createObjectURL(blob);
-                    console.log("Redirecting to Blob: " + blobUrl);
-                    return {redirectUrl: blobUrl};
-                })
-                .catch(error => {
-                    console.error("Fetch failed", error);
-                    // 如果失败，不拦截，让它走原始网络请求（或返回一个错误图）
-                    return {};
+            if (!cleanHeaders.some((header) => {
+                return header.name.toLowerCase() === 'cache-control'
+            }))
+                cleanHeaders.push({
+                    name: "Cache-Control",
+                    value: "public, max-age=1209600, immutable" //2 weeks
                 });
+
+            return {responseHeaders: cleanHeaders};
         },
-        {urls: ["<all_urls>"], types: ["image"]}, // 只拦截图片
-        ["blocking"] // 必须是阻塞模式才能重定向
+        {urls: ["<all_urls>"], types: ["image"]},
+        ["blocking", "responseHeaders"]
     );
 }

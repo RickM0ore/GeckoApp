@@ -15,7 +15,6 @@ class GeckoRuntimeSettingsInitializer : Initializer<GeckoRuntimeSettings> {
             .remoteDebuggingEnabled(true)
             .consoleOutput(true)
             .allowInsecureConnections(ALLOW_ALL)
-            .arguments(arrayOf("--user-pref", "security.fileuri.strict_origin_policy=false"))
             .build()
     }
 

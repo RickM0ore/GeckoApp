@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,6 +29,12 @@ class WebViewActivity : ComponentActivity(), ActivityBridge {
     private var prepared = false
     private val session = GeckoSession()
     private val preferences by lazy { Preferences(this) }
+    private val backPressedCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            session.goBack()
+        }
+    }
+
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString("RESTORE_URL", runBlocking { preferences[Preferences.GeckoView.RESTORE_URL] })
@@ -40,6 +47,8 @@ class WebViewActivity : ComponentActivity(), ActivityBridge {
         val splashScreen = installSplashScreen()
         splashScreen.setKeepOnScreenCondition { !prepared }
         val geckoView = GeckoView(this)
+        val activityConfiguration = ActivityConfiguration(this@WebViewActivity)
+        activityConfiguration.setSystemUiVisible(false)
         val configurer = GeckoConfigurer(this, this, geckoView, session) {
             multiplePermissionCallback = this::multiplePermissionCallback
             permissionCallback = this::permissionCallback
@@ -49,9 +58,12 @@ class WebViewActivity : ComponentActivity(), ActivityBridge {
             addPromptDelegate()
             addNavigationDelegate({
                 lifecycleScope.launch { preferences[Preferences.GeckoView.RESTORE_URL] = it }
-            })
+            }) {
+                backPressedCallback.isEnabled = it
+            }
+            addMediaPermissionRequest()
             addExtensionDependency(GeckoBridge())
-            addExtensionDependency(ActivityConfiguration(this@WebViewActivity))
+            addExtensionDependency(activityConfiguration)
             registerWebExtension()
             addProgressDelegate {
                 prepared = true
@@ -62,26 +74,18 @@ class WebViewActivity : ComponentActivity(), ActivityBridge {
         }
         val defaultUrl = runBlocking { preferences[Preferences.GeckoView.DEFAULT_URL] }
         val restoreUrl = runBlocking { preferences[Preferences.GeckoView.RESTORE_URL] }
-        val envId = runBlocking { preferences[Preferences.GeckoView.ENV_ID] }
-        var uri: String? = null
-        if (savedInstanceState != null && envId != null) {
-            savedInstanceState.getString("ENV_ID")?.let {
-                if (envId == it) {
-                    uri = restoreUrl ?: defaultUrl
-                }
-            }
-        }
-        if (uri == null && defaultUrl != null) {
-            uri = defaultUrl
-        } else {
+        val uri: String? = restoreUrl ?: defaultUrl
+        if (uri == null) {
             openHiddenConfig()
+            finish()
             return
         }
         configurer.load(uri)
+        onBackPressedDispatcher.addCallback(backPressedCallback)
     }
 
-    override fun onStart() {
-        super.onStart()
+    override fun onResume() {
+        super.onResume()
         if (AppStatus.isAppForeground()) {
             startUpdateService()
         }

@@ -21,6 +21,12 @@ class Preferences(private val context: Context) {
         }
     }
 
+    suspend fun remove(key: Preferences.Key<String>) {
+        context.dataStore.edit { preferences ->
+            preferences.remove(key)
+        }
+    }
+
     suspend operator fun get(key: Preferences.Key<String>): String? {
         return context.dataStore.data
             .map { preferences -> preferences[key] }

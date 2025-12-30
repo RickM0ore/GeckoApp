@@ -10,7 +10,7 @@ plugins {
     id("com.google.devtools.ksp")
 }
 val updateBaseUrl: Provider<String?> =
-    providers.environmentVariable("UPDATE_BASE_URL").orElse("http://localhost")
+    providers.environmentVariable("UPDATE_BASE_URL").orElse("http://192.168.2.2:8080/")
 android {
     namespace = "re.rickmoo.gecko"
     compileSdk {
@@ -194,7 +194,6 @@ dependencies {
     implementation(libs.converter.jackson)
     // https://mvnrepository.com/artifact/org.mozilla.geckoview/geckoview
     implementation(libs.geckoview)
-    implementation(libs.glide)
     implementation(libs.compose.markdown)
 }
 kotlin {

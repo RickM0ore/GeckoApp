@@ -58,6 +58,9 @@ class HiddenConfigModel(private val url: String, private val preferences: Prefer
 
     fun setEnv(env: GeckoUrl) {
         _currentEnv.value = env
+        viewModelScope.launch {
+            preferences.remove(Preferences.GeckoView.RESTORE_URL)
+        }
     }
 
     init {

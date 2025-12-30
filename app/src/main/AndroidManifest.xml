@@ -60,8 +60,6 @@
       <meta-data android:name="re.rickmoo.gecko.infra.GeckoRuntimeSettingsInitializer"
                  android:value="androidx.startup"/>
     </provider>
-    <provider android:authorities="re.rickmoo.gecko.infra.GlideContentProvider"
-              android:name=".infra.GlideContentProvider" android:exported="false" android:grantUriPermissions="true"/>
     <provider
       android:name="androidx.core.content.FileProvider"
       android:authorities="re.rickmoo.gecko.install.fileprovider"
