@@ -64,7 +64,8 @@ class AppUpdateService : LifecycleService() {
 
                     if (downloadFileName != null) {
                         Log.i(TAG, "匹配到的APK: $downloadFileName")
-                        val base = if (RELEASE_CHANNEL) {
+                        val base = if (preferences[Preferences.App.UPDATE_CHANNEL]?.let { it == "release" }
+                                ?: RELEASE_CHANNEL) {
                             "${RELEASE_SERVICE_ROOT}/${config.version}"
                         } else {
                             "${NIGHTLY_SERVICE_ROOT}/${config.version}"

@@ -63,7 +63,7 @@ fun UpdateDialog(
     // 获取屏幕配置以计算高度
     val screenHeight = LocalWindowInfo.current.containerSize.height.dp
     val mdUrl = versionInfo.changeLogUrl
-    val downloadFolder = File(context.filesDir, "update")
+    val downloadFolder = File(context.cacheDir, "update")
     val downloadFile = File(downloadFolder, "update.apk")
     // 异步加载 Markdown 内容的状态管理
     // 如果 url 为 null，result 默认为 null；如果不为 null，则开始加载
@@ -137,12 +137,14 @@ fun UpdateDialog(
                 val buffer = ByteArray(64 * 1024)
                 var bytesRead: Int
                 var totalBytesRead: Long = 0
-
+                var lastUpdateTime = 0L
                 while (inputStream.read(buffer).also { bytesRead = it } != -1) {
                     outputStream.write(buffer, 0, bytesRead)
                     totalBytesRead += bytesRead
                     // 更新进度
-                    if (totalLength > 0) {
+                    val currentTime = System.currentTimeMillis()
+                    if (totalLength > 0 && (currentTime - lastUpdateTime > 200 || totalBytesRead == totalLength)) {
+                        lastUpdateTime = currentTime
                         withContext(Dispatchers.Main) {
                             downloadState = DownloadState.Downloading(totalBytesRead, totalLength)
                         }
@@ -177,16 +179,16 @@ fun UpdateDialog(
         onDismiss()
     }
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {},
         properties = DialogProperties(usePlatformDefaultWidth = false) // 禁用默认宽度以允许自定义
     ) {
         Surface(
             modifier = Modifier
                 // 平板适配：限制最大宽度，防止在平板上过宽
                 .widthIn(max = 450.dp)
-                .fillMaxWidth(0.9f) // 手机上占据 90% 宽度
-                // 高度限制：40% - 75%
-                .heightIn(min = screenHeight * 0.4f, max = screenHeight * 0.55f).height(IntrinsicSize.Min),
+                .fillMaxWidth(0.9f)
+                .heightIn(min = 100.dp, max = screenHeight * 0.55f)
+                .height(IntrinsicSize.Min),
             shape = MaterialTheme.shapes.extraLarge,
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 6.dp
@@ -226,12 +228,27 @@ fun UpdateDialog(
                             Text(if (downloadState is DownloadState.Downloading) "取消下载" else "取消")
                         }
                         Spacer(modifier = Modifier.width(8.dp))
-                        if (downloadState is DownloadState.Idle || downloadState is DownloadState.Error) {
-                            Button(onClick = { if (downloadState is DownloadState.Finished) checkAndInstall() else startDownload() }) {
-                                Text(if (downloadState is DownloadState.Finished) "安装" else "立即下载")
+                        when (downloadState) {
+                            is DownloadState.Idle -> {
+                                Button(onClick = { if (downloadState is DownloadState.Finished) checkAndInstall() else startDownload() }) {
+                                    Text(if (downloadState is DownloadState.Finished) "安装" else "立即下载")
+                                }
                             }
-                        }
 
+                            is DownloadState.Error -> {
+                                Button(onClick = { startDownload() }) {
+                                    Text("重试下载")
+                                }
+                            }
+
+                            is DownloadState.Finished -> {
+                                Button(onClick = { checkAndInstall() }) {
+                                    Text("安装")
+                                }
+                            }
+
+                            else -> {}
+                        }
                     }
                     if (downloadState is DownloadState.Downloading) {
                         val (downloaded, total) = (downloadState as DownloadState.Downloading)
